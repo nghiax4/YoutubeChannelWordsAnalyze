@@ -30,7 +30,7 @@ function averageWpmEachYear(yearAndWpmAndViews) {
   for (const year in yearToWpmStats) {
     result.push({
       year: parseInt(year),
-      avgWpm: yearToWpmStats[year].count / yearToWpmStats[year].reciprocalSum
+      avgWpm: yearToWpmStats[year].count / yearToWpmStats[year].reciprocalSum,
     })
   }
 
@@ -58,18 +58,42 @@ function App() {
     //console.log(averageWpmEachYear(yearVsWpmVsViews))
   }
 
+  const yearToColor = {
+    2022: "#e11d48", // red-600
+    2023: "#2563eb", // blue-600
+    2024: "#10b981", // green-500
+    2025: "#f59e0b", // amber-500
+  }
   return (
-    <div>
-      <input type="checkbox" checked={useAlreadyCalculated} onChange={(e) => setUseAlreadyCalculated(e.target.checked)} />
-      <input type="text" value={channelId} onChange={(e) => setChannelId(e.target.value)} placeholder="Enter channel id" />
+    <div className="p-6 bg-white min-h-screen">
+      <h1 className="font-bold">Analyze How Youtubers Speak</h1>
 
-      <button onClick={fetchStatistics}>Show data</button>
-      <p>Num distinct words: {numDistinctWords}</p>
-      <p>Total words: {totalWords}</p>
+      <div></div>
 
-      <div style={{ width: "50%", height: 200 }}>
+      <div className="border flex flex-col p-2 mb-2">
+        <div className="flex flex-row">
+          <input type="checkbox" checked={useAlreadyCalculated} onChange={(e) => setUseAlreadyCalculated(e.target.checked)} />
+          <p>Use cached data</p>
+        </div>
+        <input className="border" type="text" value={channelId} onChange={(e) => setChannelId(e.target.value)} placeholder="Enter channel id" />
+        <button className="bg-black text-white px-4 py-2 rounded" onClick={fetchStatistics}>
+          Show data
+        </button>
+      </div>
+
+      <div className="flex flex-col border mb-2">
+        <h2>Unique Words</h2>
+        <h1>{numDistinctWords}</h1>
+      </div>
+
+      <div className="flex flex-col border">
+        <h2>Total Words</h2>
+        <h1>{totalWords}</h1>
+      </div>
+
+      <div style={{ width: "100%", height: 200 }}>
         <ResponsiveContainer>
-          <LineChart data={averageWpmEachYear(yearVsWpmVsViews)} margin={{ top: 5, right: 30, left: 20, bottom: 20 }}>
+          <LineChart data={averageWpmEachYear(yearVsWpmVsViews)} margin={{ top: 5, right: 0, left: 0, bottom: 15 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis type="number" domain={["dataMin", "dataMax"]} dataKey="year" label={{ value: "Year", position: "insideBottom", offset: -10 }} />
             <YAxis label={{ value: "Average WPM", angle: -90, position: "insideLeft", style: { textAnchor: "middle" } }} />
@@ -79,16 +103,16 @@ function App() {
         </ResponsiveContainer>
       </div>
 
-      <div style={{ width: "50%", height: 200 }}>
+      <div style={{ width: "100%", height: 200 }}>
         <ResponsiveContainer>
           <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
             <CartesianGrid />
-            <XAxis type="number" dataKey="views" />
-            <YAxis type="number" dataKey="wpm" />
+            <XAxis type="number" dataKey="views" label={{ value: "Views", position: "insideBottom", offset: -10 }} />
+            <YAxis type="number" dataKey="wpm" label={{ value: "WPM", angle: -90, position: "insideLeft", style: { textAnchor: "middle" } }} />
             <Tooltip />
             <Scatter data={yearVsWpmVsViews}>
               {yearVsWpmVsViews?.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill="#000000" />
+                <Cell key={`cell-${index}`} fill={{ 2022: "#e11d48", 2023: "#2563eb", 2024: "#10b981", 2025: "#f59e0b" }[entry.year] || "#000000"} />
               ))}
             </Scatter>
           </ScatterChart>
