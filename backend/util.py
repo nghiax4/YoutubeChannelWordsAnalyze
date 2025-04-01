@@ -1,10 +1,25 @@
 from googleapiclient.discovery import build
-from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, VideoUnavailable
 from dotenv import load_dotenv
 import os
 from datetime import datetime
 
 def calculate_statistics(data):
+    """
+    Calculates word statistics and estimated WPM (words per minute) for each video in the given data.
+
+    Args:
+        data (list): A list of video dictionaries, each containing 'date', 'views', and a 'transcript' with word timings.
+
+    Returns:
+        dict: Summary statistics including total/unique word counts and a list of (year, wpm, views) per video.
+
+    Example return value:
+        {
+            'numDistinctWords': 58,
+            'totalWords': 100,
+            'yearAndWpmAndViews': [(2021, 5, 100), (2022, 6, 60), (2023, 7, 78), (2024, 8, 45)]
+        }
+    """
     # Helper to extract year from ISO date
     def get_year(iso_date):
         return datetime.fromisoformat(iso_date.replace("Z", "")).year
@@ -30,14 +45,6 @@ def calculate_statistics(data):
         'totalWords': total_words,
         'yearAndWpmAndViews': year_and_wpm_and_views
     }
-        
-
-    # return sample data
-    return {
-        'numDistinctWords': 58,
-        'totalWords': 100,
-        'yearAndWpmAndViews': [(2021, 5, 100), (2022, 6, 60), (2023, 7, 78), (2024, 8, 45)]
-    }
 
 
 def fetch_video_data(channel_id):
@@ -45,56 +52,50 @@ def fetch_video_data(channel_id):
 
     load_dotenv()
     api_key = os.getenv("YOUTUBE_API_KEY")
-
     from googleapiclient.discovery import build
-    import json
+    from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, VideoUnavailable
 
     videos_data = []
+    videos_views = {}
+    final_video_data = []
 
     with build('youtube', 'v3', developerKey=api_key) as youtube:
+        # Fetch all video ids from the channel
         next_page_token = None
-
         while True:
-            request = youtube.search().list(
+            response = youtube.search().list(
                 part="id,snippet",
                 channelId=channel_id,
                 maxResults=50,
                 pageToken=next_page_token,
                 type="video"
-            )
+            ).execute()
             
-            response = request.execute()
             videos_data.extend(response['items'])
 
+            next_page_token = response.get('nextPageToken')
             if not next_page_token:
                 break
 
         videos_ids = [video['id']['videoId'] for video in videos_data]
 
-        videos_views = {}
+        # Fetch view counts and other statistics for all videos
+        next_page_token = None
+        while True:
+            response = youtube.videos().list(
+                part='statistics',
+                id=','.join(videos_ids),
+                pageToken=next_page_token,
+            ).execute()
+            
+            for video in response['items']:
+                videos_views[video['id']] = video['statistics']['viewCount']
 
-        with build('youtube', 'v3', developerKey=api_key) as youtube:
-            next_page_token = None
+            next_page_token = response.get('nextPageToken')
+            if not next_page_token:
+                break
 
-            while True:
-                request = youtube.videos().list(
-                    part='statistics',
-                    id=','.join(videos_ids),
-                    pageToken=next_page_token,
-                )
-
-                response = request.execute()
-                
-                for video in response['items']:
-                    videos_views[video['id']] = video['statistics']['viewCount']
-
-                if not next_page_token:
-                    break
-
-        from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, VideoUnavailable
-
-        final_video_data = []
-
+        # Combine transcripts and view counts
         for video in videos_data:
             transcript = YouTubeTranscriptApi.get_transcript(video['id']['videoId'])
             
