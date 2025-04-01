@@ -1,6 +1,7 @@
 from flask import Flask, request, send_from_directory, jsonify
 import util
 import json
+import os
 
 # Initialize Flask app
 app = Flask(__name__, static_folder='../frontend/dist', static_url_path='/')
@@ -32,9 +33,9 @@ def get_statistics():
 
     if request_data['use_already_calculated']:
         if request_data["channel_id"] == ANOTHERROOF_ID:
-            return jsonify(util.calculate_statistics(json.load(open(r"sample_data\anotherroof_data.json", "r"))))
+            return jsonify(util.calculate_statistics(json.load(open(os.path.join("sample_data", "anotherroof_data.json")))))
         elif request_data["channel_id"] == MRBEAST_ID:
-            return jsonify(util.calculate_statistics(json.load(open(r"sample_data\mrbeast_data.json", "r"))))
+            return jsonify(util.calculate_statistics(json.load(open(os.path.join("sample_data", "mrbeast_data.json")))))
         
 
     return jsonify(util.calculate_statistics(util.fetch_video_data(request_data['channel_id'])))
