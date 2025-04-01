@@ -1,94 +1,89 @@
-import { useState } from "react"
-import axios from "axios"
-import "./App.css"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, Cell } from "recharts"
+import { useState } from "react";
+import axios from "axios";
+import "./App.css";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, Cell } from "recharts";
 
 function parseYearWpmViewsData(yearAndWpmAndViews) {
   return yearAndWpmAndViews.map((item, index) => ({
     year: item[0],
     wpm: item[1],
     views: item[2],
-  }))
+  }));
 }
 
 function averageWpmEachYear(yearAndWpmAndViews) {
-  const yearToWpmStats = {}
+  const yearToWpmStats = {};
 
   for (const item of yearAndWpmAndViews) {
-    const year = item.year
-    const wpm = item.wpm
+    const year = item.year;
+    const wpm = item.wpm;
 
     if (!yearToWpmStats[year]) {
-      yearToWpmStats[year] = { reciprocalSum: 0, count: 0 }
+      yearToWpmStats[year] = { reciprocalSum: 0, count: 0 };
     }
 
-    yearToWpmStats[year].reciprocalSum += 1 / wpm
-    yearToWpmStats[year].count += 1
+    yearToWpmStats[year].reciprocalSum += 1 / wpm;
+    yearToWpmStats[year].count += 1;
   }
 
-  const result = []
+  const result = [];
   for (const year in yearToWpmStats) {
     result.push({
       year: parseInt(year),
       avgWpm: yearToWpmStats[year].count / yearToWpmStats[year].reciprocalSum,
-    })
+    });
   }
 
-  return result
+  return result;
 }
 
 function App() {
-  const [channelId, setChannelId] = useState("UCHEnZhUKjZSLYs3jJ0raKZA")
-  const [numDistinctWords, setNumDistinctWords] = useState(0)
-  const [totalWords, setTotalWords] = useState(0)
-  const [yearVsWpmVsViews, setYearVsWpmVsViews] = useState([])
-  const [useAlreadyCalculated, setUseAlreadyCalculated] = useState(false)
+  const [channelId, setChannelId] = useState("UCHEnZhUKjZSLYs3jJ0raKZA");
+  const [numDistinctWords, setNumDistinctWords] = useState(0);
+  const [totalWords, setTotalWords] = useState(0);
+  const [yearVsWpmVsViews, setYearVsWpmVsViews] = useState([]);
+  const [useAlreadyCalculated, setUseAlreadyCalculated] = useState(false);
 
   // Function to fetch statistics from the backend
   const fetchStatistics = async () => {
-    const response = await axios.post("/api/statistics", { channel_id: channelId, use_already_calculated: useAlreadyCalculated })
-    const data = response.data
+    const response = await axios.post("/api/statistics", {
+      channel_id: channelId,
+      use_already_calculated: useAlreadyCalculated,
+    });
+    const data = response.data;
 
-    setNumDistinctWords(data.numDistinctWords)
-    setTotalWords(data.totalWords)
-    setYearVsWpmVsViews(parseYearWpmViewsData(data.yearAndWpmAndViews))
+    setNumDistinctWords(data.numDistinctWords);
+    setTotalWords(data.totalWords);
+    setYearVsWpmVsViews(parseYearWpmViewsData(data.yearAndWpmAndViews));
 
     //console.log(data)
     //console.log(parseYearWpmViewsData(data.yearAndWpmAndViews))
     //console.log(averageWpmEachYear(yearVsWpmVsViews))
-  }
+  };
 
-  const yearToColor = {
-    2022: "#e11d48", // red-600
-    2023: "#2563eb", // blue-600
-    2024: "#10b981", // green-500
-    2025: "#f59e0b", // amber-500
-  }
   return (
-    <div className="p-6 bg-white min-h-screen">
-      <h1 className="font-bold">Analyze How Youtubers Speak</h1>
+    <div className="min-h-screen bg-white p-6">
+      <h1 className="mb-4 font-bold">Analyze How Youtubers Speak</h1>
 
-      <div></div>
-
-      <div className="border flex flex-col p-2 mb-2">
-        <div className="flex flex-row">
+      <div className="mb-4 flex flex-col gap-2 rounded-lg border border-gray-300 p-3">
+        <div className="flex flex-row gap-2">
           <input type="checkbox" checked={useAlreadyCalculated} onChange={(e) => setUseAlreadyCalculated(e.target.checked)} />
           <p>Use cached data</p>
         </div>
-        <input className="border" type="text" value={channelId} onChange={(e) => setChannelId(e.target.value)} placeholder="Enter channel id" />
-        <button className="bg-black text-white px-4 py-2 rounded" onClick={fetchStatistics}>
+        <input className="rounded-lg border border-gray-300 p-2" type="text" value={channelId} onChange={(e) => setChannelId(e.target.value)} placeholder="Enter channel id" />
+        <button className="rounded bg-black px-4 py-2 text-white" onClick={fetchStatistics}>
           Show data
         </button>
       </div>
 
-      <div className="flex flex-col border mb-2">
-        <h2>Unique Words</h2>
-        <h1>{numDistinctWords}</h1>
+      <div className="mb-2 flex flex-col rounded-lg border border-gray-300 p-3">
+        <h3>Unique Words</h3>
+        <h1 className="text-xl font-bold">{numDistinctWords}</h1>
       </div>
 
-      <div className="flex flex-col border">
-        <h2>Total Words</h2>
-        <h1>{totalWords}</h1>
+      <div className="mb-10 flex flex-col rounded-lg border border-gray-300 p-3">
+        <h3>Total Words</h3>
+        <h1 className="text-xl font-bold">{totalWords}</h1>
       </div>
 
       <div style={{ width: "100%", height: 200 }}>
@@ -105,21 +100,21 @@ function App() {
 
       <div style={{ width: "100%", height: 200 }}>
         <ResponsiveContainer>
-          <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+          <ScatterChart margin={{ top: 20, right: 0, left: 0, bottom: 15 }}>
             <CartesianGrid />
             <XAxis type="number" dataKey="views" label={{ value: "Views", position: "insideBottom", offset: -10 }} />
             <YAxis type="number" dataKey="wpm" label={{ value: "WPM", angle: -90, position: "insideLeft", style: { textAnchor: "middle" } }} />
             <Tooltip />
             <Scatter data={yearVsWpmVsViews}>
               {yearVsWpmVsViews?.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={{ 2022: "#e11d48", 2023: "#2563eb", 2024: "#10b981", 2025: "#f59e0b" }[entry.year] || "#000000"} />
+                <Cell key={`cell-${index}`} fill={`hsl(${(entry.year * 137) % 360}, 65%, 55%)`} />
               ))}
             </Scatter>
           </ScatterChart>
         </ResponsiveContainer>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
