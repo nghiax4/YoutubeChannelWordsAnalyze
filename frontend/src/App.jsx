@@ -98,7 +98,7 @@ function App() {
       {loading && <div className="animate-pulse text-center text-xl text-gray-600">Loading...</div>}
 
       <div className={`${initialLoadComplete && !loading ? "opacity-100" : "pointer-events-none opacity-0"} transition-opacity duration-700`}>
-        <h1 class="mb-10 border-b pb-2 text-center text-2xl font-semibold text-gray-800">Data Overview</h1>
+        <h1 className="mb-10 border-b pb-2 text-center text-2xl font-semibold text-gray-800">Data Overview</h1>
 
         <div style={{ width: "100%", height: 200 }}>
           <ResponsiveContainer>
